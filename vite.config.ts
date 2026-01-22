@@ -15,4 +15,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  base : 'https://JosueUAB.github.io/diplomado-proyecto-vue_Arista_Huanca_Josue_Israel/'
+
 })
