@@ -1,48 +1,64 @@
-# proyecto-vue
+# 📝 Proyecto Final: Gestión de Tareas (To-Do List) con Vue.js 3
 
-This template should help get you started developing with Vue 3 in Vite.
+Este proyecto es una aplicación web dinámica diseñada para la gestión integral del ciclo de vida de tareas (CRUD). Implementa una arquitectura reactiva conectada a una API REST profesional, permitiendo el control total sobre las actividades del usuario.
 
-## Recommended IDE Setup
+## 🚀 Funcionalidades Requeridas
+El sistema permite gestionar las tareas mediante las siguientes acciones integradas con el Backend:
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+* **Visualización:** Listado dinámico de tareas con opciones de edición y eliminación.
+* **Creación:** Formulario para añadir nuevas tareas a la base de datos.
+* **Edición:** Capacidad de modificar el nombre o contenido de tareas existentes.
+* **Gestión de Estado:** Alternancia entre estados "Pendiente" y "Finalizada" con estilos visuales diferenciados.
+* **Eliminación:** Borrado individual de tareas de la lista.
 
-## Recommended Browser Setup
+## 🛠️ Especificaciones Técnicas de la API
+Para asegurar la correcta integración, el frontend consume los siguientes endpoints:
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### 1. Obtener Tareas (`GET /api/tasks`)
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "total": 1,
+  "page": 1,
+  "data": [
+    {
+      "id": 38,
+      "name": "Estudiar Vue.js",
+      "done": false
+    }
+  ]
+}
+```
 
-## Type Support for `.vue` Imports in TS
+### 2. Crear Tarea (`POST /api/tasks`)
+**Cuerpo de la petición (JSON):**
+```json
+{ "name": "Nueva Tarea" }
+```
+**Respuesta:** Retorna el objeto creado con su `id` y `userId` asignado.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 3. Actualizar Estado (`PATCH /api/tasks/{id}`)
+**Cuerpo de la petición (JSON):**
+```json
+{ "done": true }
+```
+**Respuesta:** `[1]` (Indica que un registro fue actualizado correctamente).
 
-## Customize configuration
+### 4. Eliminar Tarea (`DELETE /api/tasks/{id}`)
+**Respuesta:** `204 No Content` (La tarea ha sido eliminada exitosamente).
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## 📦 Configuración del Entorno
 
-## Project Setup
+1. **Variables Globales:**
+Asegúrate de tener tu archivo `.env` configurado en la raíz con la URL base:
+`VITE_API_URL=https://carlos-trigo.onrender.com/api`
 
-```sh
+2. **Instalación:**
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
+3. **Desarrollo:**
+```bash
 npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
 ```

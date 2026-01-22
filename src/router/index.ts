@@ -54,11 +54,11 @@ const router = createRouter({
 
 // Guard
 router.beforeEach((to, from, next) => {
-  const { isAuthentucated } = useAuth()
+  const { isAuthenticated } = useAuth()
 
-  if (to.meta.requiresAuth && !isAuthentucated.value) {
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
     next({ name: 'login' })
-  } else if ((to.name === 'login' || to.name === 'register') && isAuthentucated.value) {
+  } else if ((to.name === 'login' || to.name === 'register') && isAuthenticated.value) {
     next({ name: 'dashboard' })
   } else {
     next()

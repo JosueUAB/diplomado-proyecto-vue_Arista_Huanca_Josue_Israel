@@ -11,7 +11,7 @@ export function useAuth() {
   const authStore = useAuthStore()
   const { open } = useAlert()
 
-  const isAuthentucated = computed(() => authStore.isAuthenticated)
+  const isAuthenticated = computed(() => authStore.isAuthenticated)
   const user = computed(() => authStore.user)
 
   const login = async (payload: Credentials) => {
@@ -42,7 +42,7 @@ export function useAuth() {
   return {
     loading,
     error,
-    isAuthentucated,
+    isAuthenticated,
     user,
     login,
     logout
