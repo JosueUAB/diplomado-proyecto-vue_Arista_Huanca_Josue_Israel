@@ -8,12 +8,22 @@ export class TaskService {
     return data
   }
 
+  static async getById(id: number) {
+    const { data } = await api.get<Task>(`/tasks/${id}`)
+    return data
+  }
+
   static async create(payload: CreateTaskDto) {
     const { data } = await api.post<Task>('/tasks', payload)
     return data
   }
 
-  static async update(id: number, payload: UpdateTaskDto) {
+  static async updateFull(id: number, payload: UpdateTaskDto) {
+    const { data } = await api.put<Task>(`/tasks/${id}`, payload)
+    return data
+  }
+
+  static async updateStatus(id: number, payload: UpdateTaskDto) {
     const { data } = await api.patch<number[]>(`/tasks/${id}`, payload)
     return data
   }

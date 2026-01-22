@@ -4,7 +4,10 @@ import { TaskService } from '@/services/task.service'
 import type { Task } from '@/interfaces/task.interface'
 import { ref } from 'vue'
 import { useRequest } from '@/composables/useRequest'
-import { useAlert } from '@/composables/useAlert'
+
+import TaskDialog from '@/components/tasks/TaskDialog.vue'
+import TaskDetails from '@/components/tasks/TaskDetails.vue'
+import Swal from 'sweetalert2'
 
 // Composable de DataTable
 const { items, totalItems, loading, search, itemsPerPage, loadItems, refresh } =
@@ -12,61 +15,64 @@ const { items, totalItems, loading, search, itemsPerPage, loadItems, refresh } =
 
 // Headers para la tabla
 const headers = [
-  { title: 'ID', key: 'id', align: 'start' as const },
+  { title: '#', key: 'index', align: 'start' as const, sortable: false },
   { title: 'Nombre', key: 'name', align: 'start' as const },
   { title: 'Estado', key: 'done', align: 'center' as const },
   { title: 'Acciones', key: 'actions', align: 'end' as const, sortable: false },
 ]
 
-// Estado del formulario
+// Estado del formulario y detalles
 const dialog = ref(false)
-const valid = ref(false)
-const editedItem = ref<Partial<Task>>({ name: '' })
-const isEditing = ref(false)
+const detailsDialog = ref(false)
+const taskToEdit = ref<Task | null>(null)
+const taskToView = ref<Task | null>(null)
 
 // Composable de Request y Alert
-const { run, loading: loadingAction } = useRequest()
-const { open } = useAlert()
+const { run } = useRequest()
 
 function newTask() {
-  editedItem.value = { name: '' }
-  isEditing.value = false
+  taskToEdit.value = null
   dialog.value = true
 }
 
 function editItem(item: Task) {
-  editedItem.value = { ...item }
-  isEditing.value = true
+  taskToEdit.value = item
   dialog.value = true
 }
 
-async function save() {
-  if (!valid.value) return
+function viewDetails(item: Task) {
+  taskToView.value = item
+  detailsDialog.value = true
+}
 
-  const action = isEditing.value
-    ? () => TaskService.update(editedItem.value.id!, { name: editedItem.value.name })
-    : () => TaskService.create({ name: editedItem.value.name! })
-
-  const res = await run(action)
-
-  if (res) {
-    open(isEditing.value ? 'Tarea actualizada' : 'Tarea creada', 'success')
-    dialog.value = false
-    refresh()
-  }
+function onEditFromDetails(item: Task) {
+  editItem(item)
 }
 
 async function deleteItem(item: Task) {
-  if (!confirm('¿Estás seguro de eliminar esta tarea?')) return
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "No podrás revertir esta acción de eliminar la tarea: " + item.name,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
 
-  await run(() => TaskService.delete(item.id))
-  open('Tarea eliminada', 'success')
-  refresh()
+  if (result.isConfirmed) {
+      await run(() => TaskService.delete(item.id))
+      Swal.fire('Eliminado!', 'La tarea ha sido eliminada.', 'success')
+      refresh()
+  }
 }
 
 async function toggleStatus(item: Task) {
-  await run(() => TaskService.update(item.id, { done: !item.done }))
-  item.done = !item.done // Optimistic update
+  await run(() => TaskService.updateStatus(item.id, { done: item.done }))
+  // No need for manual toggle if v-model handles it, but optimistic UI might need care.
+  // Actually v-switch updates the model. If api fails we should revert.
+  // For now simple implementation.
 }
 </script>
 
@@ -101,73 +107,106 @@ async function toggleStatus(item: Task) {
         :items-length="totalItems"
         :loading="loading"
         :search="search"
+        class="elevation-2 rounded-lg header-bold"
+        hover
         @update:options="loadItems"
       >
-        <!-- Columna Estado -->
+        <!-- Columna # (Indice secuencial) -->
+        <template #[`item.index`]="{ index }">
+            <span class="font-weight-bold text-grey-darken-2">{{ index + 1 }}</span>
+        </template>
+
+        <!-- Columna Nombre -->
+        <template #[`item.name`]="{ item }">
+          <span class="text-body-1">{{ item.name }}</span>
+        </template>
+
+        <!-- Columna Estado (Switch) -->
         <template #[`item.done`]="{ item }">
-          <v-chip
-            :color="item.done ? 'success' : 'warning'"
-            size="small"
-            class="text-uppercase font-weight-bold"
-            @click="toggleStatus(item)"
-          >
-            {{ item.done ? 'Finalizada' : 'Pendiente' }}
-          </v-chip>
+          <div class="d-flex justify-center">
+             <v-switch
+                v-model="item.done"
+                :color="item.done ? 'success' : 'error'"
+                hide-details
+                inset
+                density="compact"
+                @update:model-value="toggleStatus(item)"
+             >
+                <template #label>
+                    <v-chip
+                      :color="item.done ? 'success' : 'error'"
+                      size="small"
+                      class="font-weight-bold text-uppercase ml-2"
+                      variant="tonal"
+                    >
+                        {{ item.done ? 'Finalizada' : 'Pendiente' }}
+                    </v-chip>
+                </template>
+             </v-switch>
+          </div>
         </template>
 
         <!-- Columna Acciones -->
         <template #[`item.actions`]="{ item }">
-          <v-btn
-            icon="mdi-pencil"
-            size="small"
-            color="info"
-            variant="text"
-            @click="editItem(item)"
-          />
-          <v-btn
-            icon="mdi-delete"
-            size="small"
-            color="error"
-            variant="text"
-            @click="deleteItem(item)"
-          />
+          <div class="d-flex justify-end gap-2">
+            <v-btn
+                icon="mdi-eye"
+                size="small"
+                color="primary"
+                variant="text"
+                class="mr-1"
+                @click="viewDetails(item)"
+            >
+                <v-tooltip activator="parent" location="top">Ver detalles</v-tooltip>
+                <v-icon>mdi-eye</v-icon>
+            </v-btn>
+
+            <v-btn
+                icon="mdi-pencil"
+                size="small"
+                color="info"
+                variant="text"
+                class="mr-1"
+                @click="editItem(item)"
+            >
+                <v-tooltip activator="parent" location="top">Editar tarea</v-tooltip>
+                <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+
+            <v-btn
+                icon="mdi-delete"
+                size="small"
+                color="error"
+                variant="text"
+                @click="deleteItem(item)"
+            >
+                <v-tooltip activator="parent" location="top">Eliminar tarea</v-tooltip>
+                <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </div>
         </template>
       </v-data-table-server>
     </v-card-text>
 
-    <!-- Dialogo Crear/Editar -->
-    <v-dialog v-model="dialog" max-width="500px">
-      <v-card>
-        <v-card-title>
-          <span class="text-h5">{{ isEditing ? 'Editar Tarea' : 'Nueva Tarea' }}</span>
-        </v-card-title>
+    <!-- Dialogo Reutilizable Crear/Editar -->
+    <TaskDialog v-model="dialog" :task-to-edit="taskToEdit" @saved="refresh" />
 
-        <v-card-text>
-          <v-form v-model="valid" @submit.prevent="save">
-            <v-text-field
-              v-model="editedItem.name"
-              label="Nombre de la tarea"
-              :rules="[(v) => !!v || 'El nombre es requerido']"
-              required
-              variant="outlined"
-            />
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="blue-darken-1" variant="text" @click="dialog = false"> Cancelar </v-btn>
-          <v-btn
-            color="blue-darken-1"
-            variant="text"
-            :loading="loadingAction"
-            :disabled="!valid"
-            @click="save"
-          >
-            Guardar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- Dialogo Detalles -->
+    <TaskDetails
+        v-model="detailsDialog"
+        :task="taskToView"
+        @edit="onEditFromDetails"
+        @deleted="refresh"
+        @status-changed="refresh"
+    />
   </v-card>
 </template>
+
+<style scoped>
+.header-bold :deep(thead th) {
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+</style>
