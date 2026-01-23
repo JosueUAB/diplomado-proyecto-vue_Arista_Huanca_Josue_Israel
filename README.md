@@ -4,6 +4,9 @@
 
 **Estudiante:** Josue Israel Arista Huanca
 
+**Enlace del proyecto deployado : ** https://josueuab.github.io/diplomado-proyecto-vue_Arista_Huanca_Josue_Israel/#/auth/login
+ 
+
 ---
 
 ##  Descripción del Proyecto
