@@ -6,6 +6,8 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // base : 'https://JosueUAB.github.io/diplomado-proyecto-vue_Arista_Huanca_Josue_Israel/',
+base: '/diplomado-proyecto-vue_Arista_Huanca_Josue_Israel/',
   plugins: [
     vue(),
     vueDevTools(),
@@ -15,6 +17,5 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-  base : 'https://JosueUAB.github.io/diplomado-proyecto-vue_Arista_Huanca_Josue_Israel/'
 
 })

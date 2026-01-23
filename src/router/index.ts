@@ -5,8 +5,7 @@ import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import PerfilView from '@/views/dashboard/PerfilView.vue'
 import TaskView from '@/views/dashboard/TaskView.vue'
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/dashboard' },
   {
@@ -48,10 +47,9 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes,
 })
-
 // Guard
 router.beforeEach((to, from, next) => {
   const { isAuthenticated } = useAuth()
